@@ -1,0 +1,556 @@
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+	body
+	{
+		background: linear-gradient(90deg, rgba(5,148,170,1) 16%, rgba(235,237,201,1) 49%, rgba(247,114,114,1) 83%);
+		background:lightblue;
+	}
+
+	table tr { padding-top: 10px; margin-top: 10px; }
+
+	h1 {
+	  font-family: Arial, Helvetica, sans-serif;
+	  text-align: center;
+	}
+
+	#cube .front
+	{
+	  transform: 
+		translateZ(100px);
+	}
+
+	#cube .back
+	{
+	  transform: 
+		rotateX(-180deg)
+		translateZ(100px);
+	}
+
+	#cube .right
+	{
+	  transform:
+		rotateY(90deg)
+		translateZ(100px);
+	}
+
+	#cube .left
+	{
+	  transform:
+		rotateY(-90deg)
+		translateZ(100px);
+	}
+
+	#cube .top
+	{
+	  transform:
+		rotateX(90deg)
+		translateZ(100px);
+	}
+
+	#cube .bottom
+	{
+	  transform:
+		rotateX(-90deg)
+		translateZ(100px);
+	}
+
+	.container
+	{
+	  width: 200px;
+	  height: 200px;
+	  position: relative;
+	  margin: 0 auto 40px;
+	  !border: 1px solid #FFF;
+	  perspective: 1000px;
+	  perspective-origin: 50% 100%;
+	}
+
+	#this_score_blinker
+	{
+		z-index:9;
+		position: fixed;
+		left: calc( 50% - 50px );
+		top: 330px;
+		width: 100px;
+		height: 100px;
+		font-size: 112px;
+		color: red;
+		text-align: center;
+		display: none;
+		padding: auto;
+	}
+
+	#cube
+	{
+	  width: 100%;
+	  height: 100%;
+	  top: 50px;
+	  position: absolute;
+	  transform-style: preserve-3d;
+	  transition: transform 6s;
+	}
+
+	#cube:hover
+	{
+	  cursor: pointer;
+	}
+
+	#cube div
+	{
+	  background: rgb(255, 255, 255, 0.99);
+	  display: block;
+	  position: absolute;
+	  width: 200px;
+	  height: 100px;
+	  border: 2px solid gray;
+	  margin: 0 auto;  
+	  font-family: Arial, Helvetica, sans-serif;
+	  font-size: 500%;
+	  text-align: center;
+	  padding: 50px 0;
+	}
+
+	.dot
+	{
+	  display: block;
+	  position: absolute;
+	  width: 30px;
+	  height: 30px;
+	  background: #000;
+	  border-radius: 15px;  
+	}
+
+	.score_total
+	{
+		font-size:xx-large;
+		font-weight:bold;
+	}
+
+	.score_curr
+	{
+		font-size:xx-large;
+		font-weight:bold;
+		color:brown;
+	}
+
+	.score_label
+	{
+		font-size:x-large;
+	}
+
+	.table
+	{
+		width:100%;
+	}
+
+	.curr_player_lbl
+	{
+		font-size:xx-large;
+		font-weight:bold;
+	}
+
+	.score_message
+	{
+		font-size:xx-large;
+		font-weight:bold;
+	}
+
+	.pass_btn_div
+	{
+		height:42px;
+		top:100px;
+		margin:0px;
+		padding:0px;
+		margin-top: 70px;
+	}
+
+	.pass_btn
+	{
+		font-size:xx-large;
+		font-weight:bold;
+		cursor:pointer;
+	}
+
+	.player
+	{
+		display:none;
+	}
+
+	.spacer
+	{
+		height: 35px;
+	}
+  
+	.front .dot1 { top: 85px; left: 85px; }
+	.back .dot1 { top: 45px; left: 45px; }
+	.back .dot2 { top: 125px; left: 125px; }
+	.right .dot1 { top: 45px; left: 45px; }
+	.right .dot2 { top: 85px; left: 85px; }
+	.right .dot3 { top: 125px; left: 125px; }
+	.left .dot1 { top: 45px; left: 45px; }
+	.left .dot2 { top: 45px; left: 125px; }
+	.left .dot3 { top: 125px; left: 45px; }
+	.left .dot4 { top: 125px; left: 125px; }
+	.top .dot1 { top: 45px; left: 45px; }
+	.top .dot2 { top: 45px; left: 125px; }
+	.top .dot3 { top: 85px; left: 85px; }
+	.top .dot4 { top: 125px; left: 45px; }
+	.top .dot5 { top: 125px; left: 125px; }
+	.bottom .dot1 { top: 45px; left: 45px; }
+	.bottom .dot2 { top: 45px; left: 85px; }
+	.bottom .dot3 { top: 45px; left: 125px; }
+	.bottom .dot4 { top: 125px; left: 45px; }
+	.bottom .dot5 { top: 125px; left: 85px; }
+	.bottom .dot6 { top: 125px; left: 125px; }
+</style>
+<script src="js/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+
+<?php
+	$title="<center>Pig Dice Game</center>";
+	include "title.php";
+?>
+
+<div class="spacer"></div>
+
+<table class="table" border="1">
+	<tr height="35px">
+		<th width="50%"><span id="player1_label" class="score_label">You</span></th>
+		<th width="50%"><span id="player2_label" class="score_label">Computer</span></th>
+	</tr>
+	<tr height="35px">
+		<td align="center"><span id="player1_total" class="score_total"></span></td>
+		<td align="center"><span id="player2_total" class="score_total"></span></td>
+	</tr>
+	<tr height="35px">
+		<td align="center"><span id="player1_curr" class="score_curr"></span></td>
+		<td align="center"><span id="player2_curr" class="score_curr"></span></td>
+	</tr>
+	<tr height="35px">
+		<td colspan="2"><center><span id="curr_player" class="curr_player_lbl"></span></center></td>
+	</tr>
+	<tr height="35px">
+		<td colspan="2"><center><span id="message" class="score_message">Click the Dice to Roll</span></center></td>
+	</tr>
+</table>
+
+<section class="container">
+  <div id="cube">
+    <div class="front">
+      <span class="dot dot1"></span>
+    </div>
+    <div class="back">
+      <span class="dot dot1"></span>
+      <span class="dot dot2"></span>
+    </div>
+    <div class="right">
+      <span class="dot dot1"></span>
+      <span class="dot dot2"></span>  
+      <span class="dot dot3"></span>
+    </div>
+    <div class="left">
+      <span class="dot dot1"></span>
+      <span class="dot dot2"></span>  
+      <span class="dot dot3"></span>
+      <span class="dot dot4"></span>
+    </div>
+    <div class="top">
+      <span class="dot dot1"></span>
+      <span class="dot dot2"></span>  
+      <span class="dot dot3"></span>
+      <span class="dot dot4"></span>
+      <span class="dot dot5"></span>
+    </div>
+    <div class="bottom">
+      <span class="dot dot1"></span>
+      <span class="dot dot2"></span>  
+      <span class="dot dot3"></span>
+      <span class="dot dot4"></span>
+      <span class="dot dot5"></span>
+      <span class="dot dot6"></span>
+    </div>
+  </div>
+</section>
+
+<span id="this_score_blinker"></span>
+
+<div class="pass_btn_div">
+	<center>
+		<button id="pass_btn" class="pass_btn" onclick="player1_pass();">Hold and Score</button>
+	</center>
+</div>
+
+<audio id="player" class="player" controls>
+  <source src="https://clau.site/audio/dice_roll.mp3" type="audio/mp3">
+Your browser does not support the audio element.
+</audio>
+
+<script>
+	var cube = document.getElementById("cube");
+	var audio = document.getElementById("player");
+
+	var min = 12;
+	var max = 24;
+	var dots = 0;
+	var curr_player = 1;
+	var player1_curr_points = 0;
+	var player1_total_points = 0;
+	var player2_curr_points = 0;
+	var player2_total_points = 0;
+	var last_player=0;
+	var rolling_state="idle";
+
+	cube.addEventListener("transitionend", transition_finished);
+
+	// Object to hold the face that corresponds to a given rotation
+	var faceRotationMap = {
+	  '0': 'front',
+	  '90': 'right',
+	  '180': 'back',
+	  '270': 'left',
+	  '360': 'front',
+	  '-90': 'left',
+	  '-180': 'back',
+	  '-270': 'right'
+	};
+
+	// Modified getRandom function to return an object with the rotation and the expected front face
+	function getRandom(max, min)
+	{
+	  var randomRotation = (Math.floor(Math.random() * (max-min)) + min) * 90;
+	  var normalizedRotation = randomRotation % 360;
+	  var frontFace = faceRotationMap[normalizedRotation];
+	  return { rotation: randomRotation, frontFace: frontFace };
+	}
+
+	cube.onclick = function()
+	{
+		if( rolling_state=="idle")
+		{
+			if(curr_player==1)
+			{
+				roll_the_dice();
+			}
+		}
+	}
+
+	function roll_the_dice()
+	{
+	  rolling_state="rolling";
+	  hide("pass_btn");
+	  var xRand = getRandom(max, min);
+	  var yRand = getRandom(max, min);
+	  dots=0;
+	  if (xRand.frontFace=="front" && yRand.frontFace=="left"){dots=3;}
+	  if (xRand.frontFace=="front" && yRand.frontFace=="front"){dots=1;}
+	  if (xRand.frontFace=="front" && yRand.frontFace=="back"){dots=2;}
+	  if (xRand.frontFace=="front" && yRand.frontFace=="right"){dots=4;}
+	  if (xRand.frontFace=="back" && yRand.frontFace=="back"){dots=1;}
+	  if (xRand.frontFace=="back" && yRand.frontFace=="left"){dots=4;}
+	  if (xRand.frontFace=="back" && yRand.frontFace=="right"){dots=3;}
+	  if (xRand.frontFace=="back" && yRand.frontFace=="front"){dots=2;}
+	  if (xRand.frontFace=="right" && yRand.frontFace=="left"){dots=6;}
+	  if (xRand.frontFace=="right" && yRand.frontFace=="back"){dots=6;}
+	  if (xRand.frontFace=="right" && yRand.frontFace=="front"){dots=6;}
+	  if (xRand.frontFace=="right" && yRand.frontFace=="right"){dots=6;}
+	  if (xRand.frontFace=="left" && yRand.frontFace=="front"){dots=5;}
+	  if (xRand.frontFace=="left" && yRand.frontFace=="right"){dots=5;}
+	  if (xRand.frontFace=="left" && yRand.frontFace=="back"){dots=5;}
+	  if (xRand.frontFace=="left" && yRand.frontFace=="left"){dots=5;}
+	  cube.style.webkitTransform = 'rotateX('+xRand.rotation+'deg) rotateY('+yRand.rotation+'deg)';
+	  cube.style.transform = 'rotateX('+xRand.rotation+'deg) rotateY('+yRand.rotation+'deg)';
+	  cube.setAttribute('data-front-face', xRand.frontFace);
+	  audio.play();
+	}
+	function transition_finished()
+	{
+		rolling_state="idle";
+		//blink('#curr_player', 0);
+		if(curr_player==1)
+		{
+			if(dots==1)
+			{
+				player1_curr_points = 0;
+				curr_player=2;
+			}else
+			{
+				player1_curr_points = player1_curr_points + dots;
+			}
+			document.getElementById("this_score_blinker").innerHTML=dots;
+			blinkandhide('#this_score_blinker', 2);
+			last_player=1;
+			decide_which_player();
+		}else
+		if(curr_player==2)
+		{
+			if(dots==1)
+			{
+				player2_curr_points = 0;
+				curr_player=1;
+			}else
+			{
+				player2_curr_points = player2_curr_points + dots;
+			}
+			document.getElementById("this_score_blinker").innerHTML=dots;
+			blinkandhide('#this_score_blinker', 2);
+			blink('#curr_player', 3);
+			//document.getElementById("message").style.color="brown";
+			decide_which_player();
+			last_player=2;
+		}
+	}
+
+	function update_scores()
+	{
+		document.getElementById("player1_curr").innerHTML=player1_curr_points;
+		document.getElementById("player2_curr").innerHTML=player2_curr_points;
+		document.getElementById("player1_total").innerHTML=player1_total_points;
+		document.getElementById("player2_total").innerHTML=player2_total_points;
+		if (curr_player==1)
+		{
+			document.getElementById("curr_player").innerHTML="Your Turn";
+			document.getElementById("curr_player").style.color="green";
+			blink('#curr_player', 4);
+		}
+		else
+		if (curr_player==2)
+		{
+			document.getElementById("curr_player").innerHTML="Computer Turn";
+			document.getElementById("curr_player").style.color="brown";
+			document.getElementById("message").innerHTML="";
+			blink('#curr_player', 4);
+		}
+		if (player1_total_points > player2_total_points)
+		{
+			document.getElementById("player1_label").style.color="green";
+			document.getElementById("player2_label").style.color="black";
+		}else
+		if (player1_total_points < player2_total_points)
+		{
+			document.getElementById("player1_label").style.color="black";
+			document.getElementById("player2_label").style.color="green";
+		}else
+		{
+			document.getElementById("player1_label").style.color="black";
+			document.getElementById("player2_label").style.color="black";
+		}
+	}
+
+	 function blink(selector, repeat)
+	 {
+		if(!repeat) return;
+		$(selector).fadeOut('slow', function()
+		{
+			$(this).fadeIn('slow', function()
+			{
+				blink(this, repeat - 1);
+			});
+		});
+	 }
+
+	 function blinkandhide(selector, repeat)
+	 {
+		if(!repeat) return;
+		$(selector).fadeOut('slow', function()
+		{
+			$(this).fadeIn('slow', function()
+			{
+				blink(this, repeat - 1);
+			});
+		});
+		setTimeout(function() { $(selector).hide(); }, repeat * 1000);
+	 }
+	 
+	function decide_which_player()
+	{
+		update_scores();
+		
+		if ((player1_total_points+player1_curr_points >= 100) || player1_total_points>=100)
+		{
+			if(player1_total_points+player1_curr_points >= 100)
+			{
+				player1_total_points+=player1_curr_points;
+				player1_curr_points=0;
+			}
+			curr_player=0;
+			document.getElementById("message").innerHTML="You Win";
+			document.getElementById("curr_player").innerHTML="End of Game";
+			document.getElementById("message").style.color="green";
+			hide("pass_btn");
+			return;
+		}
+		if ((player2_total_points+player2_curr_points >= 100) || player2_total_points>=100)
+		{
+			if (player2_total_points+player2_curr_points >= 100)
+			{
+				player2_total_points+=player2_curr_points;
+				player2_curr_points=0;
+			}
+			curr_player=0;
+			document.getElementById("message").innerHTML="Computer Wins";
+			document.getElementById("curr_player").innerHTML="I am the Best!";
+			document.getElementById("message").style.color="blue";
+			hide("pass_btn");
+			return;
+		}
+		if (last_player==1 && curr_player==1)
+		{
+			show("pass_btn");
+		}
+		if (curr_player==2)
+		{
+			if (last_player!=2)
+			{
+					roll_the_dice();
+					hide("pass_btn");
+			}else
+			{
+				var y = Math.random(); if (y < 0.4){  y = 0; }	else { y= 1; }
+				if (y)
+				{
+					roll_the_dice();
+					hide("pass_btn");
+				}else
+				{
+					player2_pass();
+				}
+			}
+
+		}
+	}
+
+	function player1_pass()
+	{
+		curr_player=2;
+		player1_total_points+=player1_curr_points;
+		player1_curr_points=0;
+		decide_which_player();
+	}
+
+	function player2_pass()
+	{
+		curr_player=1;
+		player2_total_points+=player2_curr_points;
+		player2_curr_points=0;
+		decide_which_player();
+	}
+
+	function show(obj)
+	{
+		document.getElementById(obj).style.display="block";
+	}
+
+	function hide(obj)
+	{
+		document.getElementById(obj).style.display="none";
+	}
+
+	hide("pass_btn");
+
+	update_scores();
+</script>
+</body>
+</html>
